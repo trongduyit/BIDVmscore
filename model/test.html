@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <header>
+    <title>
+      ONNX Runtime JavaScript examples: Quick Start - Web (using script tag)
+    </title>
+  </header>
+  <body>
+    <script type="module">
+      // see also advanced usage of importing ONNX Runtime Web:
+      // https://github.com/microsoft/onnxruntime-inference-examples/tree/main/js/importing_onnxruntime-web
+
+      // import ONNXRuntime Web from CDN
+      import * as ort from "https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/esm/ort.min.js";
+      // set wasm path override
+      ort.env.wasm.wasmPaths =
+        "https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/";
+
+      // use an async context to call onnxruntime functions.
+      async function main() {
+        try {
+          // create a new session and load the specific model.
+          //
+          // the model in this example contains a single MatMul node
+          // it has 2 inputs: 'a'(float32, 3x4) and 'b'(float32, 4x3)
+          // it has 1 output: 'c'(float32, 3x3)
+          const session = await ort.InferenceSession.create("./ai.onnx");
+
+          // prepare inputs. a tensor need its corresponding TypedArray as data
+          const data = Float32Array.from([
+            3.580468687561918, // DSRI
+            1.5608033213272428, // GMI
+            0.9993070166768299, // AQI
+            1.0250107205408798, // SGI
+            1.2085966117410882, // DEPI
+            1.5657974566079262, // SGAI
+            0.18466002956899666, // TATA
+            1.1313910222633194, // LVGI
+          ]);
+          const tensor = new ort.Tensor("float32", data, [1, data.length]);
+
+          // prepare feeds. use model input names as keys.
+          const feeds = { input: tensor };
+
+          // feed inputs and run
+          const results = await session.run(feeds);
+
+          // read from results
+          console.log(`result`, results);
+        } catch (e) {
+          console.log(e);
+          document.write(`failed to inference ONNX model: ${e}.`);
+        }
+      }
+
+      main();
+    </script>
+  </body>
+</html>
